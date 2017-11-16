@@ -8,8 +8,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use SwedishHolidays qw( swedish_holidays swedish_weekdays swedish_months );
 
 my $this_year = (localtime(time))[5] + 1900;
-my $year =  $this_year; # use this year as standard
-$year = param('ar'); # unless we get a param 
+my $year =  param('ar') || $this_year;
 
 if ( $year !~ m!\d{4}! ) {
     $year = $this_year }
@@ -43,6 +42,6 @@ for ( my $i = $year+1; $i < $year + 6; $i++ ) {
 print '</p>';
 print p(a({ -href => "helgdagar.cgi", -title => "Årets helgdagar"}, "Tillbaka till $this_year"));
 print hr();
-print "<address>", a({ -href => "http://gustaf.symbiandiaries.com/weblog/" }, "&copy; 2005 Gustaf Erikson"), "</address>";
-print p(a( { -href => "http://validator.w3.org/check/referer" }, "validate!"));
+print "<address>", a({ -href => "http://gerikson.com/blog/" }, "&copy; 2005 Gustaf Erikson"), "</address>";
+
 print end_html()
