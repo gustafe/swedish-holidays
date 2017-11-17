@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -wT
 # -*- CPerl -*-
 
 use strict;
@@ -43,8 +43,9 @@ print start_html(
     ]
 );
 print h1("Helgdagar för $year");
-print '<table>';
-print "<tr valign='top'><th>Helgdag</th><th>Datum</th></tr>\n";
+my $table_rows;
+push @$table_rows, th( [ 'Helgdag', 'Datum' ] );
+
 foreach my $holiday (
     sort { $holidays->{$a}->{'date'} cmp $holidays->{$b}->{'date'} }
     keys %{$holidays}
@@ -56,12 +57,11 @@ foreach my $holiday (
     my $wd = swedish_weekdays( $holidays->{$holiday}->{'DoW'} ) . 'en';
     my $MM = swedish_months($mm);
     if ( $holiday eq 'Idag' ) { $holiday = b($holiday) }
-
-    print '<tr><td>', $holiday, "</td><td>$wd den $dd $MM</td>", "</tr>\n";
-
-    #    print "$date\t$holiday\t$wd den $dd $MM\n";
+    push @$table_rows, td( [ $holiday, "$wd den $dd $MM" ] );
 }
-print '</table>';
+
+#print '</table>';
+print table( { -valign => 'top' }, Tr( {}, $table_rows ) );
 print '<p>Helgdagar i framtiden: ';
 for ( my $i = $year + 1 ; $i < $year + 6 ; $i++ ) {
     print a( { -href => "helgdagar.cgi?ar=$i", -title => "Helgdagar för $i" },
