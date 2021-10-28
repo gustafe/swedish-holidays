@@ -84,7 +84,7 @@ sub swedish_weekdays {
 }
 
 sub swedish_months {
-    my @month_names = qw ( januari februari mars april maj juni juli augusti september october november december );
+    my @month_names = qw ( januari februari mars april maj juni juli augusti september oktober november december );
     my $mon = shift;
     die "month index out of range (1 to 12) or bad format: $mon\n" unless (( $mon > 0 and $mon < 13) and $mon =~ m/\d+/ );
     return $month_names[$mon - 1];
