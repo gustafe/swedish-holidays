@@ -1,35 +1,52 @@
 #!/usr/bin/perl -wT
 # -*- CPerl -*-
-
+use Modern::Perl qw/2014/;
 use strict;
-use lib ("/home/gustaf/prj/Helgdagar/");
-use CGI qw(:standard start_ul *table);
+#binmode STDOUT, ":encoding(utf8)";
+#use File::Basename;
+#use File::Spec;
+use FindBin qw/$Bin/;
+BEGIN {
+    if ($Bin =~ m!([\w\./\-]+)!) {
+	$Bin = $1;
+    } else {
+	die "Bad directory $Bin";
+    }
+}
+use Template;
+use lib "$Bin/lib";
+use CGI qw(:standard start_ul *table -utf8);
+
 use CGI::Carp qw(fatalsToBrowser);
-use SwedishHolidays qw( swedish_holidays swedish_weekdays swedish_months );
+use SwedishHolidays qw( swedish_holidays );
 
 my $this_year = ( localtime(time) )[5] + 1900;
 my ( $day, $mon, $wday ) = ( localtime(time) )[ 3, 4, 6 ];
 $mon = $mon + 1;
 if ( $wday == 0 ) { $wday = 7 }
-
-my $year = param('ar') || $this_year;
-
-if ( $year !~ m!\d{4}! ) {
+my $year = $ENV{QUERY_STRING} || $this_year;
+if ( $year !~ m!^\d{4}$! ) {
     $year = $this_year;
 }
 
 my $holidays = swedish_holidays($year);
+my %data = ( holidays => [sort {$a->{date} cmp $b->{date}} @$holidays] );
+$data{year}=$year;
+#for my $el (sort {$a->{date} cmp $b->{date}} @$holidays) {
+#    say "$el->{date} $el->{holiday} $el->{sw_date} ", $el->{legal}!=1?'*':'';
+#}
+my $tt = Template->new( {INCLUDE_PATH=>"$Bin/templates"});
+my $out; my $template;
+$out= header( {-type=>'text/html',-charset=>'utf-8'});
+$template='helgdagar.tt';
 
-if ( $year == $this_year ) {
-    $holidays->{'Idag'} = {
-        date => sprintf( "%4d-%02d-%02d", $year, $mon, $day ),
-        DoW  => $wday
-    };
 
-}
+$tt->process( $template, \%data,\$out) or die $tt->error();
+print $out;
+__END__
 print header();
 print start_html(
-    -title => "Helgdagar fˆr $year",
+    -title => "Helgdagar f√∂r $year",
     -lang  => 'sv-SE',
     -head  => [
         Link(
@@ -42,7 +59,7 @@ print start_html(
         )
     ]
 );
-print h1("Helgdagar fˆr $year");
+print h1("Helgdagar f√∂r $year");
 my $table_rows;
 push @$table_rows, th( [ 'Helgdag', 'Datum' ] );
 
@@ -64,14 +81,14 @@ foreach my $holiday (
 print table( { -valign => 'top' }, Tr( {}, $table_rows ) );
 print '<p>Helgdagar i framtiden: ';
 for ( my $i = $year + 1 ; $i < $year + 6 ; $i++ ) {
-    print a( { -href => "helgdagar.cgi?ar=$i", -title => "Helgdagar fˆr $i" },
+    print a( { -href => "helgdagar.cgi?ar=$i", -title => "Helgdagar f√∂r $i" },
         $i );
     print '&nbsp;';
 }
 print '</p>';
 print p(
     a(
-        { -href => "helgdagar.cgi", -title => "≈rets helgdagar" },
+        { -href => "helgdagar.cgi", -title => "√Örets helgdagar" },
         "Tillbaka till $this_year"
     )
 );

@@ -10,7 +10,8 @@ sub date_info {
     my $date_format = "%d-%02d-%02d";
     my $day_of_week = Day_of_Week( @date );
     my $dt_string = sprintf($date_format, @date);
-    my $date = { 'date' => $dt_string, 'DoW' => $day_of_week };
+    my $sw_date = sprintf("%sen den %d %s", swedish_weekdays( $day_of_week), $date[2], swedish_months( $date[1]));
+    my $date = { 'date' => $dt_string, 'DoW' => $day_of_week , sw_date=>$sw_date};
     return $date;
 }
 
@@ -21,25 +22,29 @@ sub add_day {
     return Add_Delta_YMD( @date, 0,0,$delta );
 }
 
-
+my @now = Today_and_Now;
 sub swedish_holidays {
 
-    # Given a year as an argument, return as hash reference with the
-    # names of the holidays in Swedish as keys. The values are a hash
-    # reference with the ISO date ('date') and the day of week ('DoW')
-    # as values.
+    # Given a year as an argument, return as array reference of hash references with the following keys:
 
+    # * date: ISO date
+    # * holiday: name of the holiday
+    # * sw_date: date in Swedish
+    # * legal: <bool>, whether this is a legal holiday or not
+    my @array;
+    my %dates;
     my $year = shift;
     die "year out of range (1583 to 2299) or bad format: $year\n" if (( $year < 1583 or $year > 2299) or $year !~ m/\d{4}/) ;
 
     ### constants
 
     my $MS_MIN = '06-20'; # midsummer's day is first Saturday after this date
-    my $AH_MIN = '10-31'; # All Saints Day is first Saturday after this date
+    my $AH_MIN = '10-31'; # All Saints Day is first Saturday after this date 
 
-    my $fixed_dates = { 'Nyårsdagen' => '01-01',           # New Years Day
+
+    my $fixed_dates = { 'NyÃ¥rsdagen' => '01-01',           # New Years Day
 			'Trettondagen' =>	'01-06',   # Epiphany
-			'Första maj' => '05-01',           # May Day
+			'FÃ¶rsta maj' => '05-01',           # May Day
 			'Sveriges nationaldag' => '06-06', # National day
 			'Juldagen' => '12-25',             # Christmas Day 
 			'Annandag jul' =>	'12-26'};  # Boxing day
@@ -48,34 +53,56 @@ sub swedish_holidays {
     ### calculate moveable feasts 
 
     my @paskdagen = Easter_Sunday( $year );
-    $holidays->{'Påskdagen'} = date_info( @paskdagen );                              # Easter Day
-    $holidays->{'Långfredagen'} = date_info( add_day( @paskdagen, -2 ));             # Good Friday
-    $holidays->{'Annandag påsk'} = date_info( add_day( @paskdagen, 1 ));             # Day after Easter Day
-    $holidays->{'Kristi Himmelsfärdsdagen'} = date_info( add_day( @paskdagen, 39 )); # Ascension Day
-    $holidays->{'Pingstdagen'} = date_info( add_day( @paskdagen, 49 ));              # Pentecost
+    # Easter Day
+    push @array, {holiday=>'PÃ¥skdagen',legal=>1,emoji=>'ðŸ£',  %{date_info( @paskdagen )}};
+    # Good Friday
+    push @array, {holiday=>'LÃ¥ngfredagen', legal=>1,emoji=>'âœ',  %{date_info( add_day(@paskdagen,-2) )}};
+    # Easter Monday
+    push @array, {holiday=>'Annandag pÃ¥sk', legal=>1,  %{date_info( add_day(@paskdagen,1) )}};
+    # Ascension Day
+    push @array, {holiday=>'Kristi HimmelsfÃ¤rdsdagen', legal=>1,  %{date_info( add_day(@paskdagen,39) )}};
+    # Pentecost
+    push @array, {holiday=>'Pingstdagen', legal=>1,  %{date_info( add_day(@paskdagen,49) )}};
 
     # search for first Saturday after some dates
     my @midsommar = ( $year, split('-', $MS_MIN) );
     while ( Day_of_Week(@midsommar) != 6 ) {
 	@midsommar = add_day( @midsommar, 1 );
     }
-    $holidays->{'Midsommardagen'} = date_info( @midsommar ); # Midsummer's day
-
+    push @array, {holiday=>'Midsommardagen', legal=>1,  %{date_info( @midsommar )}};
+    push @array, {holiday=>'Midsommarafton',legal=>0, %{date_info(add_day(@midsommar,-1))}};
     my @allhelgona = ( $year, split('-', $AH_MIN) );
     while ( Day_of_Week(@allhelgona) != 6 ) {
 	@allhelgona = add_day( @allhelgona,1 );
     }
-    $holidays->{'Alla helgons dag'} = date_info( @allhelgona ); # All Saints
+    push @array, {holiday=>'Alla helgons dag', legal=>1, emoji=>'ðŸŽƒ', %{date_info( @allhelgona )}};
 
     foreach my $holiday ( keys %{$fixed_dates} ) {
 	my $date = $fixed_dates->{$holiday};
 	$holidays->{$holiday} = date_info($year, split('-', $date));
+	push @array, {holiday=>$holiday, legal=>1,  %{date_info( $year, split('-',$date))}};
     }
-    return $holidays;
+    # add some customary holidays
+
+    push @array, {holiday=>'Julafton', legal=>0, emoji=>'ðŸŽ…',%{date_info($year,12,24)}};
+    push @array, {holiday=>'NyÃ¥rsafton', legal=>0, emoji=>'ðŸŽ†', %{date_info($year,12,31)}};
+    for my $m (1..12) {
+	my $di = date_info( $year, $m, 13 );
+
+	if ($di->{DoW}==5) { # fri 13th
+	    push @array, {holiday=>"Fredag den 13:e " .swedish_months( $m), legal=>0, date=>$di->{date}, sw_date=>$di->{sw_date}, emoji=>'ðŸ¾'};
+	}
+    }
+    if ($year == $now[0]) {
+	push @array, {holiday=>'Idag', legal=>0, %{date_info( @now[0..2])}};
+    }
+
+    return \@array;
+
 }
 
 sub swedish_weekdays {
-    my @wd_names = qw(måndag tisdag onsdag torsdag fredag lördag söndag);
+    my @wd_names = qw(mÃ¥ndag tisdag onsdag torsdag fredag lÃ¶rdag sÃ¶ndag);
     my $DoW = shift;
     die "weekday index out of range (1 to 7) or bad format: $DoW\n" unless (( $DoW > 0 and $DoW < 8 ) and $DoW =~ m/\d{1}/ );
 #    return $DoW;
