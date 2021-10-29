@@ -1,0 +1,9 @@
+# Helgdagar för [% year %]
+
+[% FOREACH entry IN holidays -%]
+[% entry.date %] [% entry.holiday %] [% entry.emoji %] [% entry.sw_date %] [% IF entry.legal != 1 %][% THEN %]*[% END %]
+[% END %]
+[% FOREACH i IN [1 2 3 4 5] -%]
+=> /cgi-bin/hd.cgi?[% year + i %] [% year + i %]
+[% END %]
+=> /cgi-bin/hd.cgi Tillbaka till nuvarande år

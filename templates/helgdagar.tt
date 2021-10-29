@@ -1,0 +1,41 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="sv-SE" xml:lang="sv-SE">
+<head>
+<title>Helgdagar för [% year %]</title>
+<link href="http://gerikson.com/stylesheets/twitterblog.css" media="all" rel="stylesheet" type="text/css" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<h1>Helgdagar för [% year %]</h1>
+[% IF year < 2004 -%][% THEN %]
+<p class="warning">Nedanstående helgdagar gäller bara från 2004.<p>
+[% END %]
+<table valign="top">
+<tr><th>Helgdag</th> <th>Datum</th></tr>
+[% FOREACH entry IN holidays -%]
+[% IF entry.legal == 1 -%]
+[% THEN -%]
+<tr><td>[% entry.holiday %] [% entry.emoji -%]</td><td>[% entry.sw_date %]</td></tr>
+[% ELSE -%]
+<tr><td><em>[% entry.holiday %]</em> [% entry.emoji -%]</td><td><em>[% entry.sw_date %]</em></td></tr>
+[% END %]
+[% END %]
+</table>
+<p>
+[% FOREACH i IN [1 2 3 4 5] %]
+[% DO %]
+<a href="helgdagar.cgi?[% year + i -%]">[% year + i -%]</a>
+[% END %]
+</p>
+<p><a href="helgdagar.cgi">Tillbaka till nuvarande år.</a></p>
+
+<hr />
+<address>
+<a href="http://gerikson.com/blog/">© 2005-2021 Gustaf Erikson</a>
+</address>
+
+</body>
+</html>
+
