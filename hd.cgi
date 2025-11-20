@@ -28,9 +28,13 @@ my $year = $ENV{QUERY_STRING} || $this_year;
 if ( $year !~ m!^\d{4}$! ) {
     $year = $this_year;
 }
-
+my %env;
+for my $k (keys %ENV) {
+    $env{$k} = $ENV{$k};
+}
 my $holidays = swedish_holidays($year);
 my %data = ( holidays => [sort {$a->{date} cmp $b->{date}} @$holidays] );
+$data{env} = \%env;
 $data{year}=$year;
 #for my $el (sort {$a->{date} cmp $b->{date}} @$holidays) {
 #    say "$el->{date} $el->{holiday} $el->{sw_date} ", $el->{legal}!=1?'*':'';
@@ -40,61 +44,5 @@ my $out; my $template;
 $out= "20 text/gemini; lang=sv\r\n";
 $template='hd.tt';
 
-
 $tt->process( $template, \%data,\$out) or die $tt->error();
 print $out;
-__END__
-print header();
-print start_html(
-    -title => "Helgdagar för $year",
-    -lang  => 'sv-SE',
-    -head  => [
-        Link(
-            {
-                -rel   => 'stylesheet',
-                -type  => 'text/css',
-                -media => 'all',
-                -href  => 'http://gerikson.com/stylesheets/twitterblog.css'
-            }
-        )
-    ]
-);
-print h1("Helgdagar för $year");
-my $table_rows;
-push @$table_rows, th( [ 'Helgdag', 'Datum' ] );
-
-foreach my $holiday (
-    sort { $holidays->{$a}->{'date'} cmp $holidays->{$b}->{'date'} }
-    keys %{$holidays}
-  )
-{
-    my $date = $holidays->{$holiday}->{'date'};
-    my ( $yyyy, $mm, $dd ) = split( '-', $date );
-    $dd =~ s/0(\d)/$1/;
-    my $wd = swedish_weekdays( $holidays->{$holiday}->{'DoW'} ) . 'en';
-    my $MM = swedish_months($mm);
-    if ( $holiday eq 'Idag' ) { $holiday = b($holiday) }
-    push @$table_rows, td( [ $holiday, "$wd den $dd $MM" ] );
-}
-
-#print '</table>';
-print table( { -valign => 'top' }, Tr( {}, $table_rows ) );
-print '<p>Helgdagar i framtiden: ';
-for ( my $i = $year + 1 ; $i < $year + 6 ; $i++ ) {
-    print a( { -href => "helgdagar.cgi?ar=$i", -title => "Helgdagar för $i" },
-        $i );
-    print '&nbsp;';
-}
-print '</p>';
-print p(
-    a(
-        { -href => "helgdagar.cgi", -title => "Årets helgdagar" },
-        "Tillbaka till $this_year"
-    )
-);
-print hr();
-print "<address>",
-  a( { -href => "http://gerikson.com/blog/" }, "&copy; 2005 Gustaf Erikson" ),
-  "</address>";
-
-print end_html()
