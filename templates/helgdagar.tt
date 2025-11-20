@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="sv-SE" xml:lang="sv-SE">
 <head>
 <title>Helgdagar för [% year %]</title>
-<link href="http://gerikson.com/stylesheets/twitterblog.css" media="all" rel="stylesheet" type="text/css" />
+<link href="https://gerikson.com/stylesheets/twitterblog.css" media="all" rel="stylesheet" type="text/css" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
@@ -18,8 +18,11 @@
 [% IF entry.legal == 1 -%]
 [% THEN -%]
 <tr><td>[% entry.holiday %] [% entry.emoji -%]</td><td>[% entry.sw_date %]</td></tr>
-[% ELSE -%]
+[% ELSIF entry.legal  == 0 AND entry.holiday != 'Idag' -%]
 <tr><td><em>[% entry.holiday %]</em> [% entry.emoji -%]</td><td><em>[% entry.sw_date %]</em></td></tr>
+[% END %]
+[% IF entry.holiday == 'Idag' -%]
+<tr><td><strong><em>[% entry.holiday %]</em></strong> [% entry.emoji -%]</td><td><em>[% entry.sw_date %]</em></td></tr>
 [% END %]
 [% END %]
 </table>
@@ -29,13 +32,61 @@
 <a href="helgdagar.cgi?[% year + i -%]">[% year + i -%]</a>
 [% END %]
 </p>
+
+<p><a href="veckodagar.cgi?[% year -%]">Årets veckodagar i textformat.</a></p>
+
 <p><a href="helgdagar.cgi">Tillbaka till nuvarande år.</a></p>
+<hr />
+[% USE Markdown -%]
+
+
+[% FILTER markdown %]
+## Om denna sida
+
+*Kursiv text:* ej officiell helgdag, men många är lediga ändå.
+
+### Lagen om allmänna helgdagar [(SFS 2004:1320)](https://lagen.nu/1989:253?diff=true&from=1989%3A253) säger
+
+1§ Med allmän helgdag avses i lag eller annan författning
+
+söndagar, däribland påskdagen och pingstdagen,
+
+nyårsdagen, trettondedag jul, första maj, juldagen och annandag jul, även när de inte infaller på en söndag, 
+
+långfredagen, annandag påsk, Kristi himmelsfärdsdag, nationaldagen, midsommardagen och alla helgons dag.
+
+2§ Av de i 1§ angivna helgdagarna infaller
+
+nyårsdagen&nbsp;&nbsp;&nbsp;&nbsp;den 1 januari  
+trettondedag jul&nbsp;&nbsp;&nbsp;&nbsp;den 6 januari  
+långfredagen&nbsp;&nbsp;&nbsp;&nbsp;fredagen närmast före påskdagen  
+påskdagen&nbsp;&nbsp;&nbsp;&nbsp;söndagen närmast efter den fullmåne som infaller på eller närmast efter den 21 mars  
+annandag påsk&nbsp;&nbsp;&nbsp;&nbsp;dagen efter påskdagen  
+Kristi himmelsfärdsdag&nbsp;&nbsp;&nbsp;&nbsp;sjätte torsdagen efter påskdagen  
+pingstdagen&nbsp;&nbsp;&nbsp;&nbsp;sjunde söndagen efter påskdagen  
+nationaldagen&nbsp;&nbsp;&nbsp;&nbsp;den 6 juni  
+midsommardagen&nbsp;&nbsp;&nbsp;&nbsp;den lördag som infaller under tiden den 20--26 juni  
+alla helgons dag&nbsp;&nbsp;&nbsp;&nbsp;den lördag som infaller under tiden den 31 oktober--den 6 november  
+juldagen&nbsp;&nbsp;&nbsp;&nbsp;den 25 december  
+annandag jul&nbsp;&nbsp;&nbsp;&nbsp;den 26 december.  
+
+[% END %]
 
 <hr />
 <address>
 <a href="http://gerikson.com/blog/">© 2005-2021 Gustaf Erikson</a>
 </address>
+<!--  CSV data for certain applications
 
+ExcludedDate
+[% FOREACH entry IN holidays -%]
+[% IF entry.legal == 1 -%]
+[% THEN -%]
+[% entry.date %]
+[% END -%]
+[% END -%]
+
+-->
 </body>
 </html>
 
